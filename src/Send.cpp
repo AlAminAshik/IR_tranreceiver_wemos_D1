@@ -49,11 +49,18 @@ void setup() {
 void loop() {
     //Serial.println(F("Send standard NEC with 8 bit address"));
     if(digitalRead(inputButton)==LOW){
-        IrSender.sendNEC(0x0, 0x40, sRepeats);     //Light control, can also be sent using raw data 0xBF40FF00
 
+        //light control signal
+        IrSender.sendNEC(0x0, 0x40, sRepeats);     //can also be sent using raw data 0xBF40FF00
+        delay(100);
+
+        //AC signal
         uint64_t tRawData[]={0x56A900FF00FF00FF, 0x55AA2AD5};
-        IrSender.sendPulseDistanceWidthFromArray(38, 6100, 7300, 600, 1650, 600, 550, &tRawData[0], 97, PROTOCOL_IS_LSB_FIRST,0,sRepeats);
+        IrSender.sendPulseDistanceWidthFromArray(38, 6100, 7300, 600, 1650, 600, 550, &tRawData[0], 97, PROTOCOL_IS_LSB_FIRST, 0,sRepeats);
+        delay(100);
 
+        //TV signal
+        IrSender.sendPulseDistanceWidth(38, 4600, 4550, 600, 1700, 600, 600, 0xFD020707, 32, PROTOCOL_IS_LSB_FIRST, 0, sRepeats);
         delay(1000);  // delay must be greater than 5 ms (RECORD_GAP_MICROS), otherwise the receiver sees it as one long signal
     }
     delay(50);
