@@ -34,10 +34,12 @@
 //#define USE_NO_SEND_PWM           // Use no carrier PWM, just simulate an active low receiver signal. Overrides SEND_PWM_BY_TIMER definition
 
 const uint16_t IR_SEND_PIN = 4; // D5 on a NodeMCU board.
+#define inputButton 5         // D1 on a NodeMCU board.
 
 uint8_t sRepeats = 0;
 
 void setup() {
+    pinMode(inputButton, INPUT_PULLUP);
 
     Serial.begin(115200);
 
@@ -45,14 +47,14 @@ void setup() {
 }
 
 void loop() {
-    Serial.println(F("Send standard NEC with 8 bit address"));
-    Serial.flush();
+    //Serial.println(F("Send standard NEC with 8 bit address"));
+    if(digitalRead(inputButton)==LOW){
+        IrSender.sendNEC(0x0, 0x40, sRepeats);     //Light control, can also be sent using raw data 0xBF40FF00
 
-    // Receiver output for the first loop must be: Protocol=NEC Address=0x102 Command=0x34 Raw-Data=0xCB340102 (32 bits)
-    IrSender.sendNEC(0x0, 0x40, <numberOfRepeats>);     //Light control, can also be sent using raw data 0xBF40FF00
+        uint64_t tRawData[]={0x56A900FF00FF00FF, 0x55AA2AD5};
+        IrSender.sendPulseDistanceWidthFromArray(38, 6100, 7300, 600, 1650, 600, 550, &tRawData[0], 97, PROTOCOL_IS_LSB_FIRST,0,sRepeats);
 
-    uint64_t tRawData[]={0x56A900FF00FF00FF, 0x55AA2AD5};
-    IrSender.sendPulseDistanceWidthFromArray(38, 6100, 7300, 600, 1650, 600, 550, &tRawData[0], 97, PROTOCOL_IS_LSB_FIRST,0,0);
-
-    delay(1000);  // delay must be greater than 5 ms (RECORD_GAP_MICROS), otherwise the receiver sees it as one long signal
+        delay(1000);  // delay must be greater than 5 ms (RECORD_GAP_MICROS), otherwise the receiver sees it as one long signal
+    }
+    delay(50);
 }
