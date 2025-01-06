@@ -19,13 +19,29 @@
     * There are exceptions like Sony and Denon, which have 5 bit address.
 */
 
-    // Protocol=PulseDistance Raw-Data=0x55AA2AD5 97 bits LSB first
-    // Send on a 32 bit platform with: 
+    // //my light control signal|||||||||||||
+    // IrSender.sendNEC(0x0, 0x40, sRepeats);     //can also be sent using raw data 0xBF40FF00
+    // delay(100);
+    // //my AC on signal|||||||||||||
     // uint64_t tRawData[]={0x56A900FF00FF00FF, 0x55AA2AD5};
-    // IrSender.sendPulseDistanceWidthFromArray(38, 6100, 7300, 600, 1650, 600, 550, &tRawData[0], 97, PROTOCOL_IS_LSB_FIRST, <RepeatPeriodMillis>, <numberOfRepeats>);
+    // IrSender.sendPulseDistanceWidthFromArray(38, 6100, 7300, 600, 1650, 600, 550, &tRawData[0], 97, PROTOCOL_IS_LSB_FIRST, 0,sRepeats);
+    // delay(100);
+    // //my TV signal|||||||||||||
+    // IrSender.sendPulseDistanceWidth(38, 4600, 4550, 600, 1700, 600, 600, 0xFD020707, 32, PROTOCOL_IS_LSB_FIRST, 0, sRepeats);
+    // //office AC off signal|||||||||||||
+    // uint64_t tRawData[]={0x41006000008FC3, 0x3845000000};
+    // IrSender.sendPulseDistanceWidthFromArray(38, 9000, 4550, 550, 1700, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, <RepeatPeriodMillis>, <numberOfRepeats>);
+    // //office AC on signal|||||||||||||
+    // uint64_t tRawData[]={0x41006000008FC3, 0x5845002000};
+    // IrSender.sendPulseDistanceWidthFromArray(38, 8950, 4600, 550, 1700, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, <RepeatPeriodMillis>, <numberOfRepeats>);
+    // //office AC increase temp signal|||||||||||||
+    // uint64_t tRawData[]={0x410060000097C3, 0x5B40002000};
+    // IrSender.sendPulseDistanceWidthFromArray(38, 9000, 4550, 550, 1750, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, <RepeatPeriodMillis>, <numberOfRepeats>);
+    // //Office AC decrease temp signal|||||||||||||
+    // uint64_t tRawData[]={0x41006000008FC3, 0x5441002000};
+    // IrSender.sendPulseDistanceWidthFromArray(38, 9050, 4550, 550, 1700, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, <RepeatPeriodMillis>, <numberOfRepeats>);
 
-    // Protocol=NEC Address=0x0 Command=0x40 Raw-Data=0xBF40FF00 32 bits LSB first
-    // Send with: IrSender.sendNEC(0x0, 0x40, <numberOfRepeats>);
+
 
 #include <Arduino.h>
 #include <IRremote.hpp> // include the library
@@ -50,17 +66,6 @@ void loop() {
     //Serial.println(F("Send standard NEC with 8 bit address"));
     if(digitalRead(inputButton)==LOW){
 
-        //light control signal
-        IrSender.sendNEC(0x0, 0x40, sRepeats);     //can also be sent using raw data 0xBF40FF00
-        delay(100);
-
-        //AC signal
-        uint64_t tRawData[]={0x56A900FF00FF00FF, 0x55AA2AD5};
-        IrSender.sendPulseDistanceWidthFromArray(38, 6100, 7300, 600, 1650, 600, 550, &tRawData[0], 97, PROTOCOL_IS_LSB_FIRST, 0,sRepeats);
-        delay(100);
-
-        //TV signal
-        IrSender.sendPulseDistanceWidth(38, 4600, 4550, 600, 1700, 600, 600, 0xFD020707, 32, PROTOCOL_IS_LSB_FIRST, 0, sRepeats);
         delay(1000);  // delay must be greater than 5 ms (RECORD_GAP_MICROS), otherwise the receiver sees it as one long signal
     }
     delay(50);
