@@ -46,12 +46,12 @@
 #include <Arduino.h>
 #include <IRremote.hpp> // include the library
 
-const uint16_t IR_SEND_PIN = 4; // D5 on a NodeMCU board.
-#define incButton 12    // D6 on a NodeMCU board.
-#define menuButton 13   // D7 on a NodeMCU board.
-#define decButton 15    // D8 on a NodeMCU board.
+const uint16_t IR_SEND_PIN = 2; // D4 on a NodeMCU board.
+#define incButton 0     //D3 of wemos
+#define menuButton 4    //D2 of wemos
+#define decButton 5    //D1 of wemos
 
-String menu_Items[] = {"idle", "AC turn on", "Temp mode", "AC turn off"}; //items
+String menu_Items[] = {"idle", "AC Mode", "Temp mode"}; //items
 uint8_t curr_Menu_Item_Num = 0;             //keepinig track of which menu being displayed
 uint8_t total_Menu_Item_Num = (sizeof(menu_Items)/sizeof(menu_Items[0])); //store the number of menu items. divide the array for proper counting of large arrays size
 
@@ -79,24 +79,38 @@ void setup() {
 }
 
 
-// void runMainMenu(){
-//   Serial.println(menu_Items[curr_Menu_Item_Num]); //print the current menu item
-//   delay(1000);
-//   if(digitalRead(incButton) == LOW){ //if inc button is pressed
-//     sRepeats++; //increase the number of repeats
-//     Serial.print("sRepeats: ");
-//     Serial.println(sRepeats);
-//     delay(1000);
-//   }
-//   if(digitalRead(decButton) == LOW){ //if dec button is pressed
-//     sRepeats--; //decrease the number of repeats
-//     Serial.print("sRepeats: ");
-//     Serial.println(sRepeats);
-//     delay(1000);
-//   }
-// }
+void runMainMenu(){
+    if(curr_Menu_Item_Num == 0){} //if menu is idle
+
+    else if(curr_Menu_Item_Num == 1){ //if menu is AC turn on
+        if (digitalRead(incButton) == LOW){ //if inc button is pressed
+            Serial.println("AC turn on");
+            uint64_t tRawData[]={0x41006000008FC3, 0x5845002000};
+            IrSender.sendPulseDistanceWidthFromArray(38, 8950, 4600, 550, 1700, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, 0, 0);
+        }
+        
+        else if(digitalRead(decButton) == LOW){ //if dec button is pressed
+            Serial.println("AC turn off");
+            uint64_t tRawData[]={0x41006000008FC3, 0x3845000000};
+            IrSender.sendPulseDistanceWidthFromArray(38, 9000, 4550, 550, 1700, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, 0, 0);
+        }
+    }
+
+    else if(curr_Menu_Item_Num == 2){ //if menu is temp mode
+        if(digitalRead(incButton) == LOW){ //if inc button is pressed
+            Serial.println("Temp increase");
+            uint64_t tRawData[]={0x410060000097C3, 0x5B40002000};
+            IrSender.sendPulseDistanceWidthFromArray(38, 9000, 4550, 550, 1750, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, 0, 0);
+        }
+        else if(digitalRead(decButton) == LOW){ //if dec button is pressed
+            Serial.println("Temp decrease");
+            uint64_t tRawData[]={0x41006000008FC3, 0x5441002000};
+            IrSender.sendPulseDistanceWidthFromArray(38, 9050, 4550, 550, 1700, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, 0, 0);
+        }
+    }
+}
 
 void loop() {
-//activateMenu();
+runMainMenu();
 delay(100);
 }
