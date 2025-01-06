@@ -30,43 +30,73 @@
     // IrSender.sendPulseDistanceWidth(38, 4600, 4550, 600, 1700, 600, 600, 0xFD020707, 32, PROTOCOL_IS_LSB_FIRST, 0, sRepeats);
     // //office AC off signal|||||||||||||
     // uint64_t tRawData[]={0x41006000008FC3, 0x3845000000};
-    // IrSender.sendPulseDistanceWidthFromArray(38, 9000, 4550, 550, 1700, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, <RepeatPeriodMillis>, <numberOfRepeats>);
+    // IrSender.sendPulseDistanceWidthFromArray(38, 9000, 4550, 550, 1700, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, 0, 0);
     // //office AC on signal|||||||||||||
     // uint64_t tRawData[]={0x41006000008FC3, 0x5845002000};
-    // IrSender.sendPulseDistanceWidthFromArray(38, 8950, 4600, 550, 1700, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, <RepeatPeriodMillis>, <numberOfRepeats>);
+    // IrSender.sendPulseDistanceWidthFromArray(38, 8950, 4600, 550, 1700, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, 0, 0);
     // //office AC increase temp signal|||||||||||||
     // uint64_t tRawData[]={0x410060000097C3, 0x5B40002000};
-    // IrSender.sendPulseDistanceWidthFromArray(38, 9000, 4550, 550, 1750, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, <RepeatPeriodMillis>, <numberOfRepeats>);
+    // IrSender.sendPulseDistanceWidthFromArray(38, 9000, 4550, 550, 1750, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, 0, 0);
     // //Office AC decrease temp signal|||||||||||||
     // uint64_t tRawData[]={0x41006000008FC3, 0x5441002000};
-    // IrSender.sendPulseDistanceWidthFromArray(38, 9050, 4550, 550, 1700, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, <RepeatPeriodMillis>, <numberOfRepeats>);
+    // IrSender.sendPulseDistanceWidthFromArray(38, 9050, 4550, 550, 1700, 550, 600, &tRawData[0], 104, PROTOCOL_IS_LSB_FIRST, 0, 0);
 
 
 
 #include <Arduino.h>
 #include <IRremote.hpp> // include the library
 
-//#define SEND_PWM_BY_TIMER         // Disable carrier PWM generation in software and use (restricted) hardware PWM.
-//#define USE_NO_SEND_PWM           // Use no carrier PWM, just simulate an active low receiver signal. Overrides SEND_PWM_BY_TIMER definition
-
 const uint16_t IR_SEND_PIN = 4; // D5 on a NodeMCU board.
-#define inputButton 5         // D1 on a NodeMCU board.
+#define incButton 12    // D6 on a NodeMCU board.
+#define menuButton 13   // D7 on a NodeMCU board.
+#define decButton 15    // D8 on a NodeMCU board.
+
+String menu_Items[] = {"idle", "AC turn on", "Temp mode", "AC turn off"}; //items
+uint8_t curr_Menu_Item_Num = 0;             //keepinig track of which menu being displayed
+uint8_t total_Menu_Item_Num = (sizeof(menu_Items)/sizeof(menu_Items[0])); //store the number of menu items. divide the array for proper counting of large arrays size
 
 uint8_t sRepeats = 0;
 
-void setup() {
-    pinMode(inputButton, INPUT_PULLUP);
-
-    Serial.begin(115200);
-
-    IrSender.begin(IR_SEND_PIN); // Start with IR_SEND_PIN -which is defined in PinDefinitionsAndMore.h- as send pin and enable feedback LED at default feedback LED pin
+IRAM_ATTR void activateMenu(){          //dont use ICACHE as it will cause a crash. use IRAM_ATTR instead
+  static unsigned long last_interrupt_time = 0;
+  unsigned long interrupt_time = millis();
+  // If interrupts come faster than 200ms, assume it's a bounce and ignore
+  if (interrupt_time - last_interrupt_time > 200) {
+    curr_Menu_Item_Num++;         //cycle through menus
+    Serial.println(menu_Items[curr_Menu_Item_Num]); //print the current menu item
+    if(curr_Menu_Item_Num > total_Menu_Item_Num-1) curr_Menu_Item_Num = 0;    //close menu all options have been once shown
+  }
+  last_interrupt_time = interrupt_time;
 }
 
-void loop() {
-    //Serial.println(F("Send standard NEC with 8 bit address"));
-    if(digitalRead(inputButton)==LOW){
+void setup() {
+    Serial.begin(115200);
+    IrSender.begin(IR_SEND_PIN); // Start with IR_SEND_PIN -which is defined in PinDefinitionsAndMore.h- as send pin
+    pinMode(menuButton, INPUT_PULLUP);
+    pinMode(incButton, INPUT_PULLUP); 
+    pinMode(decButton, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(menuButton), activateMenu, FALLING); //when menu button is pressed execute activateMenu
+}
 
-        delay(1000);  // delay must be greater than 5 ms (RECORD_GAP_MICROS), otherwise the receiver sees it as one long signal
-    }
-    delay(50);
+
+// void runMainMenu(){
+//   Serial.println(menu_Items[curr_Menu_Item_Num]); //print the current menu item
+//   delay(1000);
+//   if(digitalRead(incButton) == LOW){ //if inc button is pressed
+//     sRepeats++; //increase the number of repeats
+//     Serial.print("sRepeats: ");
+//     Serial.println(sRepeats);
+//     delay(1000);
+//   }
+//   if(digitalRead(decButton) == LOW){ //if dec button is pressed
+//     sRepeats--; //decrease the number of repeats
+//     Serial.print("sRepeats: ");
+//     Serial.println(sRepeats);
+//     delay(1000);
+//   }
+// }
+
+void loop() {
+//activateMenu();
+delay(100);
 }
