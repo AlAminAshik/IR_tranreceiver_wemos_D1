@@ -9,3 +9,16 @@ in the development cycle.
 
 More information about PlatformIO Unit Testing:
 - https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
+
+my home ac codes:
+TURNING ON
+Protocol=PulseDistance Raw-Data=0x55AA2AD5 97 bits LSB first
+Send on a 32 bit platform with:
+    uint64_t tRawData[]={0x56A900FF00FF00FF, 0x55AA2AD5};
+    IrSender.sendPulseDistanceWidthFromArray(38, 6050, 7400, 550, 1700, 550, 550, &tRawData[0], 97, PROTOCOL_IS_LSB_FIRST, <RepeatPeriodMillis>, <numberOfRepeats>);
+
+TURNING OFF
+Protocol=PulseDistance Raw-Data=0x55AA2AD5 97 bits LSB first
+Send on a 32 bit platform with:
+    uint64_t tRawData[]={0x54AB00FF00FF00FF, 0x55AA2AD5};
+    IrSender.sendPulseDistanceWidthFromArray(38, 6050, 7350, 600, 1700, 600, 550, &tRawData[0], 97, PROTOCOL_IS_LSB_FIRST, <RepeatPeriodMillis>, <numberOfRepeats>);
